@@ -107,9 +107,11 @@ class TokenRetriever:
 
     def login_with_phone(self):
 
-        phone = ""           # 输入报名工具手机号
-        password = ""      # 输入报名工具密码
-
+        # phone = ""           # 输入报名工具手机号
+        # password = ""      # 输入报名工具密码
+        phone = input("请输入手机号：")
+        password = input("请输入密码：")
+        
         credentials = {"phone": phone, "password": password}
         response = requests.post(self.phone_login_url, json=credentials, headers=self.get_headers()).json()
         
@@ -117,7 +119,7 @@ class TokenRetriever:
             print(f"登录失败，{response['msg']}")
             return None
         
-        print("=== 自动登录成功，身份为%d****%d ===\n" % (int(phone[0:3]), int(phone[-4:])))
+        print("\n=== 登录成功，身份为%d****%d ===\n" % (int(phone[0:3]), int(phone[-4:])))
         return response['data']['access_token']
 
     def show_user_history(self, history_data):

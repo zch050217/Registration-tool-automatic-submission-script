@@ -19,7 +19,7 @@ pip install requests
 
 ### 测试效果
 
-![image2](/img/image2.png)
+![image2](/img/image2.jpg)
 
 ### 更新日志
 
