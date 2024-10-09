@@ -23,6 +23,8 @@ class EnrollmentSubmitter:
         self.user_info_url = f'{self.base_url}/v1/userinfo?access_token={self.access_token}'
         self.request_details_url = f'{self.base_url}/v1/req_detail?access_token={self.access_token}&eid={self.enrollment_id}'
         self.submit_url = f'{self.base_url}/v5/enroll'
+        self.failed_attempts = 0
+        self.failed_attempts_limit = 20
 
     def get_headers(self):
         return {'User-Agent': get_random_user_agent()}
@@ -33,23 +35,22 @@ class EnrollmentSubmitter:
             names = item['name'] if isinstance(item['name'], list) else [item['name']]
             for name in names:
                 self.user_extra_info[name] = item['value']
-        
         print("\n=== 用户信息已成功获取 ===")
         print("\n已保存的用户信息如下：")
         for name, value in self.user_extra_info.items():
             print(f"  - {name}: {value}")
-        print("\n*** 开始抢讲座 ***")
+        print("\n=== 开始抢讲座 ===")
         print("---------------------------------------------------------")
 
     def fetch_enrollment_details(self):
         try:
             enrollment_data = requests.get(self.request_details_url, headers=self.get_headers()).json()
         except json.JSONDecodeError:
-            print(f"{time.strftime('%H:%M:%S', time.localtime())} | [!] 获取报名详情失败，重新尝试中...")
+            print(f"{time.strftime('%H:%M:%S', time.localtime())} | [!] 获取报名详情失败")
             return False
         
         if not enrollment_data['data']['req_info']:
-            print(f"{time.strftime('%H:%M:%S', time.localtime())} | [-] 报名尚未开始，等待中...")
+            print(f"{time.strftime('%H:%M:%S', time.localtime())} | [-] 报名尚未开始")
             return False
         
         for item in enrollment_data['data']['req_info']:
@@ -77,20 +78,23 @@ class EnrollmentSubmitter:
             print(f"{time.strftime('%H:%M:%S', time.localtime())} | [+] 报名已成功提交！")
             return True
         
-        if response['msg'] == '活动期间，只允许提交1次':
+        if response['msg'] == '活动期间只允许提交一次':
             print(f"{time.strftime('%H:%M:%S', time.localtime())} | [-] 活动期间只允许提交一次，无法重复提交。")
             return True
         
         print(f"{time.strftime('%H:%M:%S', time.localtime())} | [-] 提交失败，返回信息：{response['msg']}")
+        self.failed_attempts += 1
         return False
 
     def run(self):
         self.fetch_user_info()
-        while True:
+        while self.failed_attempts < self.failed_attempts_limit:
             if self.fetch_enrollment_details():
                 if self.submit_enrollment():
                     break
-            time.sleep(0.15)
+            time.sleep(0.2)
+        if self.failed_attempts >= self.failed_attempts_limit:
+            print("提交失败次数已达到%d次，停止运行。" % int(self.failed_attempts_limit))
 
 class TokenRetriever:
     def __init__(self):
@@ -112,13 +116,14 @@ class TokenRetriever:
         if response['sta'] == -1:
             print(f"登录失败，{response['msg']}")
             return None
+        
+        print("=== 自动登录成功，身份为%d****%d ===\n" % (int(phone[0:3]), int(phone[-4:])))
         return response['data']['access_token']
 
     def show_user_history(self, history_data):
         print('请选择要提交的表单序号')
         for idx, entry in enumerate(history_data, 1):
             print(f"序号：{idx}\t名称：{entry['name']}\t状态：{entry['status']}")
-        return history_data
 
     def run(self):
         access_token = self.login_with_phone()
@@ -137,7 +142,7 @@ class TokenRetriever:
             print('请将需要提交的报名添加到个人记录中再运行程序')
             return
 
-        user_history = self.show_user_history(user_history)
+        self.show_user_history(user_history)
         while True:
             user_input = input('请输入序号：')
             if user_input.isdigit() and 0 < int(user_input) <= len(user_history):
