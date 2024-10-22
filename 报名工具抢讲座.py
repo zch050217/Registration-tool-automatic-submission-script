@@ -2,6 +2,8 @@ import time
 import json
 import requests
 import random
+import getpass
+import os
 
 def get_random_user_agent():
     user_agents = [
@@ -12,6 +14,16 @@ def get_random_user_agent():
         'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1'
     ]
     return random.choice(user_agents)
+
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("""
+-------------------------------------------
+        微信报名工具抢讲座小工具v2.1.1
+                By C3ngH 2024.10.22
+-------------------------------------------
+""")
+
 
 class EnrollmentSubmitter:
     def __init__(self, enrollment_id, access_token):
@@ -36,7 +48,7 @@ class EnrollmentSubmitter:
             for name in names:
                 self.user_extra_info[name] = item['value']
         print("\n=== 用户信息已成功获取 ===")
-        print("\n已保存的用户信息如下：")
+        print("\n[!] 已保存的用户信息如下：")
         for name, value in self.user_extra_info.items():
             print(f"  - {name}: {value}")
         print("\n=== 开始抢讲座 ===")
@@ -94,7 +106,7 @@ class EnrollmentSubmitter:
                     break
             time.sleep(0.2)
         if self.failed_attempts >= self.failed_attempts_limit:
-            print("提交失败次数已达到%d次，停止运行。" % int(self.failed_attempts_limit))
+            print("[!] 提交失败次数已达到%d次，停止运行。" % int(self.failed_attempts_limit))
 
 class TokenRetriever:
     def __init__(self):
@@ -107,27 +119,33 @@ class TokenRetriever:
 
     def login_with_phone(self):
 
-        # phone = ""           # 输入报名工具手机号
-        # password = ""      # 输入报名工具密码
-        phone = input("请输入手机号：")
-        password = input("请输入密码：")
+        phone = input("[!] 请输入手机号：")
+        password = getpass.getpass("[!] 请输入密码(不显示)：")
         
         credentials = {"phone": phone, "password": password}
         response = requests.post(self.phone_login_url, json=credentials, headers=self.get_headers()).json()
         
         if response['sta'] == -1:
-            print(f"登录失败，{response['msg']}")
+            print(f"[!] 登录失败，{response['msg']}")
             return None
         
+        clear_screen()
+
         print("\n=== 登录成功，身份为%d****%d ===\n" % (int(phone[0:3]), int(phone[-4:])))
         return response['data']['access_token']
 
     def show_user_history(self, history_data):
-        print('请选择要提交的表单序号')
+        print('[!] 请选择要提交的表单序号')
         for idx, entry in enumerate(history_data, 1):
             print(f"序号：{idx}\t名称：{entry['name']}\t状态：{entry['status']}")
 
     def run(self):
+        print("""
+-------------------------------------------
+        微信报名工具抢讲座小工具v2.1.1
+                By C3ngH 2024.10.22
+-------------------------------------------
+        """)
         access_token = self.login_with_phone()
         if not access_token:
             return
@@ -141,17 +159,17 @@ class TokenRetriever:
                 user_history.append({'name': entry['title'], 'status': status, 'eid': entry['eid']})
 
         if not user_history:
-            print('请将需要提交的报名添加到个人记录中再运行程序')
+            print('[!] 请将需要提交的报名添加到个人记录中再运行程序')
             return
 
         self.show_user_history(user_history)
         while True:
-            user_input = input('请输入序号：')
+            user_input = input('[!] 请输入序号：')
             if user_input.isdigit() and 0 < int(user_input) <= len(user_history):
                 EnrollmentSubmitter(user_history[int(user_input) - 1]['eid'], access_token).run()
                 break
-            print('请输入正确的序号')
+            print('[!] 请输入正确的序号')
 
 if __name__ == '__main__':
     TokenRetriever().run()
-    input('按回车退出...')
+    input('[!] 按回车退出...')
