@@ -19,14 +19,13 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
     print("""
 -------------------------------------------
-        微信报名工具抢讲座小工具v2.1.1
+        微信报名工具抢讲座小工具v2.2.1
                 By C3ngH 2024.10.22
 -------------------------------------------
 """)
 
-
 class EnrollmentSubmitter:
-    def __init__(self, enrollment_id, access_token):
+    def __init__(self, enrollment_id, access_token, session):
         self.user_extra_info = {}
         self.enrollment_request_data = []
         self.access_token = access_token
@@ -37,12 +36,14 @@ class EnrollmentSubmitter:
         self.submit_url = f'{self.base_url}/v5/enroll'
         self.failed_attempts = 0
         self.failed_attempts_limit = 20
+        self.session = session
 
     def get_headers(self):
         return {'User-Agent': get_random_user_agent()}
 
     def fetch_user_info(self):
-        user_info = requests.get(self.user_info_url, headers=self.get_headers()).json()
+        response = self.session.get(self.user_info_url, headers=self.get_headers())
+        user_info = response.json()
         for item in user_info['data']['extra_info']:
             names = item['name'] if isinstance(item['name'], list) else [item['name']]
             for name in names:
@@ -56,7 +57,8 @@ class EnrollmentSubmitter:
 
     def fetch_enrollment_details(self):
         try:
-            enrollment_data = requests.get(self.request_details_url, headers=self.get_headers()).json()
+            response = self.session.get(self.request_details_url, headers=self.get_headers())
+            enrollment_data = response.json()
         except json.JSONDecodeError:
             print(f"{time.strftime('%H:%M:%S', time.localtime())} | [!] 获取报名详情失败")
             return False
@@ -84,7 +86,7 @@ class EnrollmentSubmitter:
             "referer": "", 
             "fee_type": ""
         }
-        response = requests.post(self.submit_url, json=body, headers=self.get_headers()).json()
+        response = self.session.post(self.submit_url, json=body, headers=self.get_headers()).json()
         
         if response['sta'] == 0:
             print(f"{time.strftime('%H:%M:%S', time.localtime())} | [+] 报名已成功提交！")
@@ -104,7 +106,7 @@ class EnrollmentSubmitter:
             if self.fetch_enrollment_details():
                 if self.submit_enrollment():
                     break
-            time.sleep(0.2)
+            time.sleep(0.25)
         if self.failed_attempts >= self.failed_attempts_limit:
             print("[!] 提交失败次数已达到%d次，停止运行。" % int(self.failed_attempts_limit))
 
@@ -113,24 +115,23 @@ class TokenRetriever:
         self.base_url = 'https://api-xcx-qunsou.weiyoubot.cn/xcx/enroll'
         self.phone_login_url = f'{self.base_url}/v1/login_by_phone'
         self.user_history_url = f'{self.base_url}/v1/user/history?access_token='
+        self.session = requests.Session()
 
     def get_headers(self):
         return {'User-Agent': get_random_user_agent()}
 
     def login_with_phone(self):
-
         phone = input("[!] 请输入手机号：")
         password = getpass.getpass("[!] 请输入密码(不显示)：")
-        
+
         credentials = {"phone": phone, "password": password}
-        response = requests.post(self.phone_login_url, json=credentials, headers=self.get_headers()).json()
+        response = self.session.post(self.phone_login_url, json=credentials, headers=self.get_headers()).json()
         
         if response['sta'] == -1:
             print(f"[!] 登录失败，{response['msg']}")
             return None
         
         clear_screen()
-
         print("\n=== 登录成功，身份为%d****%d ===\n" % (int(phone[0:3]), int(phone[-4:])))
         return response['data']['access_token']
 
@@ -151,7 +152,7 @@ class TokenRetriever:
             return
 
         user_history = []
-        result = requests.get(f'{self.user_history_url}{access_token}', headers=self.get_headers()).json()
+        result = self.session.get(f'{self.user_history_url}{access_token}', headers=self.get_headers()).json()
         
         for entry in result['data']:
             if entry['status'] < 2:
@@ -166,7 +167,7 @@ class TokenRetriever:
         while True:
             user_input = input('[!] 请输入序号：')
             if user_input.isdigit() and 0 < int(user_input) <= len(user_history):
-                EnrollmentSubmitter(user_history[int(user_input) - 1]['eid'], access_token).run()
+                EnrollmentSubmitter(user_history[int(user_input) - 1]['eid'], access_token, self.session).run()
                 break
             print('[!] 请输入正确的序号')
 
