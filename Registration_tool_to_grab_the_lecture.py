@@ -15,15 +15,13 @@ class EnrollmentSubmitter:
         self.access_token = access_token
         self.enrollment_id = enrollment_id
         self.base_url = 'https://api-xcx-qunsou.weiyoubot.cn/xcx/enroll'
-        self.user_info_url = f'{
-            self.base_url}/v1/userinfo?access_token={self.access_token}'
-        self.request_details_url = f'{
-            self.base_url}/v1/req_detail?access_token={self.access_token}&eid={self.enrollment_id}'
+        self.user_info_url = f'{self.base_url}/v1/userinfo?access_token={self.access_token}'
+        self.request_details_url = f'{self.base_url}/v1/req_detail?access_token={self.access_token}&eid={self.enrollment_id}'
         self.submit_url = f'{self.base_url}/v5/enroll'
         self.failed_attempts = 0
         self.failed_attempts_limit = 20
         self.session = session
-        self.stop_event = stop_event  # 用于控制线程停止
+        self.stop_event = stop_event
 
     def get_headers(self):
         return {'User-Agent': get_random_user_agent()}
@@ -48,13 +46,11 @@ class EnrollmentSubmitter:
                 self.request_details_url, headers=self.get_headers())
             enrollment_data = response.json()
         except json.JSONDecodeError:
-            console.print(f"{time.strftime('%H:%M:%S')
-                             } | [red][!] 获取报名详情失败[/red]")
+            console.print(f"{time.strftime('%H:%M:%S')} | [red][!] 获取报名详情失败[/red]")
             return False
 
         if not enrollment_data['data']['req_info']:
-            console.print(f"{time.strftime('%H:%M:%S')
-                             } | [yellow][-] 报名尚未开始[/yellow]")
+            console.print(f"{time.strftime('%H:%M:%S')} | [yellow][-] 报名尚未开始[/yellow]")
             return False
 
         for item in enrollment_data['data']['req_info']:
@@ -81,12 +77,10 @@ class EnrollmentSubmitter:
             self.submit_url, json=body, headers=self.get_headers()).json()
 
         if response['sta'] == 0:
-            console.print(f"{time.strftime('%H:%M:%S')
-                             } | [green][+] 报名已成功提交！[/green]")
+            console.print(f"{time.strftime('%H:%M:%S')} | [green][+] 报名已成功提交！[/green]")
             return True
 
-        console.print(f"{time.strftime('%H:%M:%S')
-                         } | [red][-] 提交失败，返回信息：{response['msg']}[/red]")
+        console.print(f"{time.strftime('%H:%M:%S')} | [red][-] 提交失败，返回信息：{response['msg']}[/red]")
         self.failed_attempts += 1
         return False
 
@@ -98,18 +92,16 @@ class EnrollmentSubmitter:
                     break
             time.sleep(0.25)
         if self.failed_attempts >= self.failed_attempts_limit:
-            console.print("[red][!] 提交失败次数已达到%d次，停止运行。[/red]" %
-                          self.failed_attempts_limit)
+            console.print("[red][!] 提交失败次数已达到%d次，停止运行。[/red]" % self.failed_attempts_limit)
 
 
 class TokenRetriever:
     def __init__(self):
         self.base_url = 'https://api-xcx-qunsou.weiyoubot.cn/xcx/enroll'
         self.phone_login_url = f'{self.base_url}/v1/login_by_phone'
-        self.user_history_url = f'{
-            self.base_url}/v1/user/history?access_token='
+        self.user_history_url = f'{self.base_url}/v1/user/history?access_token='
         self.session = requests.Session()
-        self.stop_event = Event()  # 用于控制线程的停止
+        self.stop_event = Event()
 
     def get_headers(self):
         return {'User-Agent': get_random_user_agent()}
@@ -119,16 +111,14 @@ class TokenRetriever:
         password = getpass.getpass("[!] 请输入密码(不显示)：")
 
         credentials = {"phone": phone, "password": password}
-        response = self.session.post(
-            self.phone_login_url, json=credentials, headers=self.get_headers()).json()
+        response = self.session.post(self.phone_login_url, json=credentials, headers=self.get_headers()).json()
 
         if response['sta'] == -1:
             console.print(f"[red][!] 登录失败，{response['msg']}[/red]")
             return None
 
         clear_screen()
-        console.print(f"\n[green]=== 登录成功，身份为 {
-                      phone[0:3]}****{phone[-4:]} ===[/green]\n")
+        console.print(f"\n[green]=== 登录成功，身份为 {phone[0:3]}****{phone[-4:]} ===[/green]\n")
         return response['data']['access_token']
 
     def show_user_history(self, history_data):
@@ -145,7 +135,7 @@ class TokenRetriever:
         console.print(table)
 
     def run_multiple_enrollments(self, enrollments, access_token, session):
-        # 启动一个线程等待用户回车以停止所有线程
+
         stop_thread = Thread(target=self.wait_for_stop)
         stop_thread.start()
 
@@ -161,12 +151,11 @@ class TokenRetriever:
             except Exception as e:
                 console.print(f"[red][!] 报名任务失败：{e}[/red]")
 
-        # 等待停止线程结束
         stop_thread.join()
 
     def wait_for_stop(self):
         input("[!] 按回车键停止所有任务...\n")
-        self.stop_event.set()  # 设置停止事件
+        self.stop_event.set()
 
     def run(self):
         clear_screen()
@@ -175,14 +164,12 @@ class TokenRetriever:
             return
 
         user_history = []
-        result = self.session.get(f'{self.user_history_url}{
-                                  access_token}', headers=self.get_headers()).json()
+        result = self.session.get(f'{self.user_history_url}{access_token}', headers=self.get_headers()).json()
 
         for entry in result['data']:
             if entry['status'] < 2:
                 status = '进行中' if entry['status'] else '未开始'
-                user_history.append(
-                    {'name': entry['title'], 'status': status, 'eid': entry['eid']})
+                user_history.append({'name': entry['title'], 'status': status, 'eid': entry['eid']})
 
         if not user_history:
             console.print('[red][!] 请将需要提交的报名添加到个人记录中再运行程序[/red]')
@@ -196,22 +183,19 @@ class TokenRetriever:
 
         while True:
             self.show_user_history(user_history)
-            user_input = input(
-                '[!] 请输入序号（输入"r"刷新记录，"all"并发报名所有任务，"ch"手动选择多个序号）：')
+            user_input = input('[!] 请输入序号（输入"r"刷新记录，"all"并发报名所有任务，"ch"手动选择多个序号）：')
             if user_input.lower() == 'r':
-                # 刷新记录
+
                 user_history = []
-                result = self.session.get(f'{self.user_history_url}{
-                                          access_token}', headers=self.get_headers()).json()
+                result = self.session.get(f'{self.user_history_url}{access_token}', headers=self.get_headers()).json()
                 for entry in result['data']:
                     if entry['status'] < 2:
                         status = '进行中' if entry['status'] else '未开始'
-                        user_history.append(
-                            {'name': entry['title'], 'status': status, 'eid': entry['eid']})
+                        user_history.append({'name': entry['title'], 'status': status, 'eid': entry['eid']})
                 if not user_history:
                     console.print('[red][!] 请将需要提交的报名添加到个人记录中再运行程序[/red]')
             elif user_input.lower() == 'all':
-                # 并发提交所有任务
+
                 eid_list = [entry['eid'] for entry in user_history]
                 self.run_multiple_enrollments(
                     eid_list, access_token, self.session)
