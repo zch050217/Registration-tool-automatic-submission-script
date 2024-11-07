@@ -4,23 +4,30 @@
 ### 安装依赖
 
 ```
-pip install requests
-pip install rich
+pip install -r requirements.txt
 ```
 
 ### 使用方法
 
 1. 在这个网站使用微信登录后设置密码（重置密码） https://baominggongju.com/
+
 2. 设置快速填写信息
-3. 然后使用手机号+密码 填写在脚本第84和85行![image](/img/image1.png)
-4. 在手机上先扫码进入要报名的活动，确保已经进入过一次，留下历史记录
+
+   ![image](/img/image1.png)
+
+3. 在手机上先扫码进入要报名的活动，确保已经进入过一次，留下历史记录
+
 5. 运行脚本
 
 注：可搜索`time.sleep()`修改发包间隔时间
 
 ### 测试效果
 
-![image2](/img/image2.jpg)
+![](img/image2.png)
+
+![image3](img/image3.png)
+
+![image4](img/image4.png)
 
 ### 更新日志
 
@@ -39,3 +46,8 @@ pip install rich
   * 使用rich美化
   * 增加刷新程序记录的功能，不用重新运行脚本
   * 增加多线程功能，能同时抢多个活动。
+- 24.11.7
+  - 优化逻辑，任务列表为空时也支持刷新
+  - 合并文件，精简代码
+  - 使用`fake_useragent`模块随机UA头
+  - 新增密码输入错误重输功能
