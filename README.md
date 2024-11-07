@@ -51,3 +51,5 @@ pip install -r requirements.txt
   - 合并文件，精简代码
   - 使用`fake_useragent`模块随机UA头
   - 新增密码输入错误重输功能
+- 24.11.7 v2.3.1
+  - 修复活动状态错误问题，例如进行中的活动依然显示未开始

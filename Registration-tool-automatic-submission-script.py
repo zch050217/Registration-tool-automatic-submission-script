@@ -1,8 +1,8 @@
 import time
 import json
 import requests
-import getpass
 import os
+import getpass
 from rich.table import Table
 from rich.console import Console
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -16,7 +16,7 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
     console.print("\n[bold cyan]----------------------------------------------------[/bold cyan]")
-    console.print("           微信报名工具抢讲座小工具v2.3.0")
+    console.print("           微信报名工具抢讲座小工具v2.3.1")
     console.print("                     By C3ngH & void2eye")
     console.print("                      Updated: 2024-11-7")
     console.print("[bold cyan]----------------------------------------------------[/bold cyan]\n")
@@ -174,8 +174,7 @@ class TokenRetriever:
 
         for idx, entry in enumerate(history_data, 1):
 
-            status_text = '进行中' if entry['status'] == 1 else '未开始'
-            table.add_row(str(idx), entry['name'], status_text)
+            table.add_row(str(idx), entry['name'], entry['status'])
 
         console.print(table)
 
