@@ -7,7 +7,7 @@ from rich.table import Table
 from rich.console import Console
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Event, Thread
-from fake_useragent import UserAgent
+#from fake_useragent import UserAgent
 
 console = Console()
 
@@ -16,15 +16,15 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
     console.print("\n[bold cyan]----------------------------------------------------[/bold cyan]")
-    console.print("           微信报名工具抢讲座小工具v2.3.1")
+    console.print("           微信报名工具抢讲座小工具v2.3.2")
     console.print("                     By C3ngH & void2eye")
     console.print("                      Updated: 2024-11-7")
     console.print("[bold cyan]----------------------------------------------------[/bold cyan]\n")
 
-def get_random_user_agent():
+# def get_random_user_agent():
 
-    ua = UserAgent()
-    return ua.random
+#     ua = UserAgent()
+#     return ua.random
 
 class EnrollmentSubmitter:
 
@@ -45,8 +45,8 @@ class EnrollmentSubmitter:
 
     def get_headers(self):
 
-        return {'User-Agent': get_random_user_agent()}
-
+        # return {'User-Agent': get_random_user_agent()}
+        return {'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36'}
     def fetch_user_info(self):
 
         response = self.session.get(self.user_info_url, headers=self.get_headers())
@@ -144,7 +144,8 @@ class TokenRetriever:
 
     def get_headers(self):
 
-        return {'User-Agent': get_random_user_agent()}
+        # return {'User-Agent': get_random_user_agent()}
+        return {'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36'}
 
     def login_with_phone(self):
 
