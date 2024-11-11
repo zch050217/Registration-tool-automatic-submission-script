@@ -18,7 +18,7 @@ def clear_screen():
     console.print("\n[bold cyan]----------------------------------------------------[/bold cyan]")
     console.print("           微信报名工具抢讲座小工具v2.3.2")
     console.print("                     By C3ngH & void2eye")
-    console.print("                      Updated: 2024-11-7")
+    console.print("                      Updated: 2024-11-11")
     console.print("[bold cyan]----------------------------------------------------[/bold cyan]\n")
 
 # def get_random_user_agent():
