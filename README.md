@@ -112,8 +112,8 @@ pip install -r requirements.txt
 如果觉得脚本方便有效的话可以请我喝一杯咖啡，你的支持是最大的动力。
 
 <center class="half">
-<img src="./img/wx.jpg" width=200/>
-<img src="./img/zfb.jpg" width=200/>
+<img src="./img/wx.jpg" width=300/>
+<img src="./img/zfb.jpg" width=300/>
 </center>
 
 #### 特别鸣谢：
