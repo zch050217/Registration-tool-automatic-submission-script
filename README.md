@@ -115,10 +115,12 @@ pip install -r requirements.txt
 <img src="./img/wx.jpg" width=300/>
 <img src="./img/zfb.jpg" width=300/>
 </center>
-
 #### 特别鸣谢：
+
+希望大家在赞助的时候可以留下昵称和留言，便于收集信息，万分感谢
 
 | 赞助者                                                 | 留言                           | 金额  |
 | ------------------------------------------------------ | ------------------------------ | ----- |
 | [@minjiezhuzhuxia](https://github.com/minjiezhuzhuxia) | 感谢无私分享，劳动成果需要认可 | 30.00 |
+| *朝                                                    | 无                             | 10.00 |
 
